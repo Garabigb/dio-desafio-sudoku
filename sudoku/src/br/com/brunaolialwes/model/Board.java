@@ -21,18 +21,18 @@ public class Board {
     public GameStatusEnum getStatus(){
         if(SPACES.stream().flatMap(Collection::stream).noneMatch(s->!s.isFIXED()
                 && nonNull(s.getActual()))){
-            return NON_STATED;
+            return NON_STARTED;
 
         }
         if(SPACES.stream().flatMap(Collection::stream).anyMatch(s->isNull(s.getActual()))){
-            return IMCOMPLETE;
+            return INCOMPLETE;
 
         }
         return COMPLETE;
     }
 
     public boolean hasError(){
-        if (getStatus() == NON_STATED){
+        if (getStatus() == NON_STARTED){
             return false;
         }
         return SPACES.stream().flatMap(Collection::stream)
