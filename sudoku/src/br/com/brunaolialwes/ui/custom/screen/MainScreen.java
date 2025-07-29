@@ -2,6 +2,7 @@ package br.com.brunaolialwes.ui.custom.screen;
 
 import br.com.brunaolialwes.model.Space;
 import br.com.brunaolialwes.service.BoardService;
+import br.com.brunaolialwes.service.NotifierService;
 import br.com.brunaolialwes.ui.custom.button.CheckGameStatusButton;
 import br.com.brunaolialwes.ui.custom.button.FinishGameButton;
 import br.com.brunaolialwes.ui.custom.button.ResetGameButton;
@@ -16,8 +17,8 @@ import java.util.ArrayList;
 import java.util.Map;
 import java.util.List;
 
-import static javax.swing.JOptionPane.QUESTION_MESSAGE;
-import static javax.swing.JOptionPane.YES_NO_OPTION;
+import static br.com.brunaolialwes.service.EventEnum.CLEAR_SPACE;
+import static javax.swing.JOptionPane.*;
 
 public class MainScreen {
 
@@ -28,9 +29,11 @@ public class MainScreen {
     private final static Dimension dimension = new Dimension(600,600);
 
     private final BoardService boardService;
+    private final NotifierService notifierService;
 
     public MainScreen(final Map<String,String> gameConfig){
         this.boardService = new BoardService(gameConfig);
+        this.notifierService = new NotifierService();
     }
 
     public void buildMainScreen(){
@@ -69,18 +72,19 @@ public class MainScreen {
 
     private JPanel generateSection(final List<Space> spaces){
         List<NumberText> fields = new ArrayList<>(spaces.stream().map(NumberText::new).toList());
+        fields.forEach(t-> notifierService.subscriber(CLEAR_SPACE, t));
         return new SudokuSector(fields);
     }
 
     private void addFinishGameButton(JPanel mainPanel) {
          finishGameButton = new FinishGameButton(e -> {
             if(boardService.gameIsFinished()){
-                JOptionPane.showMessageDialog(null,"Você é o cara");
+                showMessageDialog(null,"Você é o cara");
                 resetGameButton.setEnabled(false);
                 checkGameStatusButton.setEnabled(false);
                 finishGameButton.setEnabled(false);
             }else{
-                JOptionPane.showMessageDialog(null, "Meu mano tem algo errado, melhore");
+                showMessageDialog(null, "Meu mano tem algo errado, melhore");
             }
 
         });
@@ -97,7 +101,7 @@ public class MainScreen {
                 case COMPLETE -> "Jogo completo \\o/";
             };
             message+= hasErrors ? " e contém erros" : "";
-            JOptionPane.showMessageDialog(null, message);
+            showMessageDialog(null, message);
 
         });
         mainPanel.add(checkGameStatusButton);
@@ -105,7 +109,7 @@ public class MainScreen {
 
     private void addResetButton(JPanel mainPanel) {
         resetGameButton = new ResetGameButton(e-> {
-             var dialogResult = JOptionPane.showConfirmDialog(
+             var dialogResult = showConfirmDialog(
                      null,
                      "Certeza?",
                      "Limpar o jogo",
@@ -115,6 +119,7 @@ public class MainScreen {
 
              if(dialogResult == 0){
                  boardService.reset();
+                 notifierService.notify(CLEAR_SPACE);
              }
         });
         mainPanel.add(resetGameButton);
